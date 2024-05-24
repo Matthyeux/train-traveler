@@ -1,7 +1,5 @@
 
 import voluptuous as vol
-import logging
-from typing import Optional
 
 from homeassistant import config_entries, core
 from homeassistant.const import CONF_API_KEY, CONF_SCAN_INTERVAL, CONF_URL, CONF_REGION
@@ -56,7 +54,7 @@ async def fetch_area(place: str, connection, hass: core.HomeAssistant):
 
     return areas
 
-class SncfConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class TrainTravelerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for sncf-integration."""
 
     VERSION = 1

@@ -1,0 +1,13 @@
+{
+    "domain": "train-traveler",
+    "name": "Train Traveler",
+    "version": "0.1.0",
+    "codeowners": [],
+    "dependencies": [],
+    "documentation": "https://www.example.com",
+    "integration_type": "device",
+    "iot_class": "cloud_polling",
+    "requirements": [],
+    "config_flow": true,
+    "quality_scale": "silver"
+}

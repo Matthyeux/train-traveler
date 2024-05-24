@@ -1,0 +1,48 @@
+{
+    "config": {
+        "title": "Train Traveler",
+        "step": {
+            "user": {
+                "title": "Authentication",
+                "description": "Enter your SNCF API key retrieved from https://numerique.sncf.com/startup/api/token-developpeur/",
+                "data": {
+                    "url": "SNCF API url (should not be changed)",
+                    "region": "SNCF Region (should not be changed)",
+                    "api_key": "SNCF API key"
+                }
+            },
+            "start_end": {
+                "title": "Travel",
+                "description": "Type you starting point and your destination",
+                "data": {
+                    "from": "Departure station",
+                    "to": "Destination"
+                }
+
+            },
+            "validate_start_end": {
+                "title": "Validate Travel",
+                "description": "Select the stations among those proposed",
+                "data": {
+                    "start_area": "Validate departure station",
+                    "end_area": "Validate arrival station"
+                }
+            },
+            "journey": {
+                "title": "Journey settings",
+                "description": "Configure settings for the journey",
+                "data": {
+                    "journey": "Number of next journeys",
+                    "scan_interval": "Refresh rate (in sec.)",
+                    "last_journey": "Add last journey of the day"
+                }
+
+            }
+        },
+        "error": {
+            "auth_error": "The api key provided is not valid.",
+            "fetch_area_error": "No stations found for theses settings"
+        }
+    
+    }
+}

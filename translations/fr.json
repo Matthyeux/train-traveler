@@ -1,0 +1,48 @@
+{
+    "config": {
+        "title": "Train Traveler",
+        "step": {
+            "user": {
+                "title": "Authentification",
+                "description": "Entrez votre clé d'API SNCF reçu par ce lien https://numerique.sncf.com/startup/api/token-developpeur/",
+                "data": {
+                    "url": "Url API SNCF (ne devrait pas changer)",
+                    "region": "Région SNCF (ne devrait pas changer)",
+                    "api_key": "Clé d'API SNCF"
+                }
+            },
+            "start_end": {
+                "title": "Voyage",
+                "description": "Entrez un lieu de départ et d'arrivée",
+                "data": {
+                    "from": "Gare de départ",
+                    "to": "Gare d'arrivée"
+                }
+
+            },
+            "validate_start_end": {
+                "title": "Valider les gares",
+                "description": "Sélectionnez les gares parmi celles proposées",
+                "data": {
+                    "start_area": "Gare de départ",
+                    "end_area": "Gare d'arrivée"
+                }
+            },
+            "journey": {
+                "title": "Paramètre du voyage",
+                "description": "Configurer les paramètres du voyage",
+                "data": {
+                    "journey": "Nombre de prochains trajets à récupérer",
+                    "scan_interval": "Taux de rafraichissement (en secondes)",
+                    "last_journey": "Ajouter le dernier trajet de la journée"
+                }
+
+            }
+        },
+        "error": {
+            "auth_error": "La clé d'API fournie n'est pas la bonne.",
+            "fetch_area_error": "Aucune gare trouvée pour ces paramètres"
+        }
+    
+    }
+}

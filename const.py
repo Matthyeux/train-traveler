@@ -3,14 +3,14 @@ from homeassistant.const import Platform
 VERSION = "0.1.0"
 
 
-DOMAIN = "sncf-integration"
+DOMAIN = "train-traveler"
 PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR]
 
 DEFAULT_CONNECTION_URL = "https://api.sncf.com/v1"
 DEFAULT_CONNECTION_REGION = "sncf"
 
 DEFAULT_REFRESH_RATE = 540
-DEFAULT_JOURNEY_COUNT = 2
+DEFAULT_JOURNEY_COUNT = 1
 
 CONF_CONNECTION = "connection"
 CONF_AREAS = "start_end"

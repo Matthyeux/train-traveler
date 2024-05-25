@@ -7,7 +7,7 @@
     "documentation": "https://www.example.com",
     "integration_type": "device",
     "iot_class": "cloud_polling",
-    "requirements": [],
+    "requirements": ["train-traveler-api==0.1.0a1716563972"],
     "config_flow": true,
     "quality_scale": "silver"
 }

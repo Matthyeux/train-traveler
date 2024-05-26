@@ -4,7 +4,7 @@
 blueprints/
 deps/
 tts/
-HA_VERSION
+.HA_VERSION
 automations.yaml
 configuration.yaml
 home-assistant*

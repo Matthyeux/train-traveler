@@ -6,6 +6,4 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Framework for accessing the SNCF API.
-- Interactive command-line interface to retrieve upcoming trains.
-- Functionality to retrieve the last journey of the day.
+- Create integration

@@ -1,0 +1,12 @@
+{
+    "domain": "train-traveler",
+    "name": "Train Traveler",
+    "version": "0.1.0",
+    "codeowners": ["@Matthyeux"],
+    "dependencies": [],
+    "documentation": "https://github.com/Matthyeux/train-traveler",
+    "integration_type": "device",
+    "iot_class": "cloud_polling",
+    "requirements": ["train-traveler-api==0.1.0a1716738338 "],
+    "config_flow": true
+}

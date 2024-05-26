@@ -11,10 +11,11 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed
 )
-from homeassistant.const import CONF_API_KEY, CONF_SCAN_INTERVAL, CONF_URL, CONF_REGION
+from homeassistant.const import CONF_SCAN_INTERVAL
 
 from .const import DOMAIN, CONF_START_AREA, CONF_END_AREA, CONF_JOURNEYS_COUNT, CONF_AREA_LABEL, CONF_AREA_COORD, CONF_AREA_ID, CONF_AREA_NAME
 
+from sncf.repositories.repository_manager import ApiRepository
 from sncf.repositories.journey_repository import ApiJourneyRepository 
 from sncf.repositories.stop_area_repository import ApiStopAreaRepository
 from sncf.repositories.disruption_repository import ApiDisruptionRepository
@@ -30,26 +31,31 @@ _LOGGER = logging.getLogger(__name__)
 
 class JourneyCoordinator(DataUpdateCoordinator):
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry, last_journey: bool = False):
+    def __init__(self, connection: ApiConnectionManager, hass: HomeAssistant, entry: ConfigEntry, last_journey: bool = False):
         self.config = entry.data
+        
+        # set update_interval to 6hours if we are going to fetch last journey (to reduce useless api call)
+        update_interval = 21600
+        if not last_journey:
+            update_interval = self.config[CONF_SCAN_INTERVAL]
+
         super().__init__(
             hass,
             _LOGGER,
             name="Journey",
-            update_interval=timedelta(seconds=self.config[CONF_SCAN_INTERVAL])
+            update_interval=timedelta(seconds=update_interval)
         )
         
-        connection = ApiConnectionManager(self.config[CONF_URL], self.config[CONF_API_KEY], self.config[CONF_REGION])
-        journey_service = JourneyService(
-            stop_area_repository=ApiStopAreaRepository(connection),
-            journey_repository=ApiJourneyRepository(connection),
-            disruption_repository=ApiDisruptionRepository(connection)
-        )
-
         self.last_journey = last_journey
+        self.connection = connection
         self.hass = hass
         self.entry = entry
-        self.journey_service: JourneyService.JourneyService = journey_service
+        self.repository_manager = ApiRepository(self.connection)
+        self.journey_service: JourneyService.JourneyService = JourneyService(
+            stop_area_repository=ApiStopAreaRepository(self.connection),
+            journey_repository=ApiJourneyRepository(self.connection),
+            disruption_repository=ApiDisruptionRepository(self.connection)
+        )
 
     async def _async_update_data(self):
         _LOGGER.info("Fetch data for journey %s", self.config[CONF_START_AREA][CONF_AREA_LABEL])
@@ -82,6 +88,8 @@ class JourneyCoordinator(DataUpdateCoordinator):
                         self.config[CONF_JOURNEYS_COUNT]
                     )
 
+                _LOGGER.debug("Api calls count %s", self.repository_manager._query_count)
+                
                 _LOGGER.info("data sucessfully fetched")
                 return journeys
         except Exception as err:

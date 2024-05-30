@@ -1,0 +1,6 @@
+{
+    "name": "Train Traveler",
+    "country": ["EN", "FR"],
+    "render_readme": true,
+    "homeassistant": "2024.2.0"
+}

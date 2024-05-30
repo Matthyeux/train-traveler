@@ -15,6 +15,32 @@ Train Traveler is a custom component for Home Assistant that retrieves the next 
 - Home Assistant installed and configured.
 - An account with access to the [SNCF Portal](https://numerique.sncf.com/startup/api/token-developpeur/)..
 
+### Installation via HACS
+
+1. **Install HACS:**
+
+    If you haven't installed HACS yet, follow the instructions available on the official [HACS website](https://hacs.xyz/docs/installation/prerequisites).
+
+2. **Add the Train Traveler repository to HACS:**
+
+    - Open Home Assistant and go to `HACS > Integrations`.
+    - Click on the three dots in the top right corner and select `Custom repositories`.
+    - Add the link to the Train Traveler GitHub repository: `https://github.com/Matthyeux/train_traveler`.
+    - Select the category `Integration` and click `Add`.
+
+3. **Install the Train Traveler integration:**
+
+    - Go to `HACS > Integrations`.
+    - Click the `+ Explore & Download Repositories` button.
+    - Search for `Train Traveler` and click `Download`.
+
+4. **Restart Home Assistant:**
+
+    Restart Home Assistant for the changes to take effect.
+
+    You can restart Home Assistant from the user interface under `Configuration > Server Controls > Restart`.
+
+
 ### Manual Installation
 
 1. **Download the component files:**

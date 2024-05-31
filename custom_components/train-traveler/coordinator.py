@@ -135,7 +135,6 @@ class JourneyCoordinator(DataUpdateCoordinator):
                 _LOGGER.debug("Api calls count %s", self.repository_manager._query_count)
                 
                 _LOGGER.info("data sucessfully fetched")
-                #journeys.journeys[0].journey.departure_date_time = datetime.now()
                 return journeys
         except Exception as err:
             _LOGGER.error("Failed to fetch API : %s", err)

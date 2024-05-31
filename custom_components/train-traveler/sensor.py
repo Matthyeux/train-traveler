@@ -1,5 +1,6 @@
 import logging
-import pytz
+
+from datetime import datetime
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.config_entries import ConfigEntry
@@ -10,9 +11,25 @@ from homeassistant.components.sensor import (
     SensorStateClass
 )
 
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-
-from .const import DOMAIN, VERSION, CONF_NEXT_JOURNEY, CONF_LAST_JOURNEY
+from .const import (
+    DOMAIN, 
+    CONF_NEXT_JOURNEY, 
+    CONF_LAST_JOURNEY,
+    ATTR_JOURNEYS_LIST, 
+    ATTR_LINE_JOURNEY, 
+    ATTR_DIRECTION_JOURNEY, 
+    ATTR_DEPARTURE_JOURNEY, 
+    ATTR_ARRIVAL_JOURNEY, 
+    ATTR_DEPARTURE_TIME_JOURNEY, 
+    ATTR_ARRIVAL_TIME_JOURNEY, 
+    ATTR_DURATION_JOURNEY, 
+    ATTR_PHYSICAL_MODE_JOURNEY, 
+    ATTR_DELAY_JOURNEY,
+    ATTR_DISRUPTIONS_LIST,
+    ATTR_DISRUPTION_TYPE,
+    ATTR_DISRUPTION_MESSAGE
+)
+from .journey_entity import JourneyBaseEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,29 +42,27 @@ async def async_setup_entry(
     _LOGGER.debug("Calling async_setup_entry entry=%s", entry)
 
     next_journey_coordinator = hass.data[DOMAIN][entry.entry_id][CONF_NEXT_JOURNEY]
-    entities = [entity(next_journey_coordinator, index, "next") for index, ent in enumerate(next_journey_coordinator.data.journeys) for entity in (JourneyEntity, DepartureEntity, ArrivalEntity, DurationEntity, DelayEntity)]
-    
+    entities = [entity(next_journey_coordinator, index, "next") for index, ent in enumerate(next_journey_coordinator.data.journeys) for entity in (NextJourneyEntity, DepartureEntity, ArrivalEntity, DurationEntity, DelayEntity)]
+    entities.extend([JourneyEntity(next_journey_coordinator, 0, "next")])
+
     if CONF_LAST_JOURNEY in hass.data[DOMAIN][entry.entry_id]:
         last_journey_coordinator = hass.data[DOMAIN][entry.entry_id][CONF_LAST_JOURNEY]
-        entities.extend([entity(last_journey_coordinator, index, "last") for index, ent in enumerate(last_journey_coordinator.data.journeys) for entity in (JourneyEntity, DepartureEntity, ArrivalEntity, DurationEntity, DelayEntity)])
+        entities.extend([entity(last_journey_coordinator, index, "last") for index, ent in enumerate(last_journey_coordinator.data.journeys) for entity in (NextJourneyEntity, DepartureEntity, ArrivalEntity, DurationEntity, DelayEntity)])
 
     async_add_entities(entities, True)
 
 
-class JourneyEntity(CoordinatorEntity, SensorEntity):
+
+class NextJourneyEntity(JourneyBaseEntity, SensorEntity):
     def __init__(self, coordinator, index, type):
-        self.coordinator = coordinator
-        super().__init__(self.coordinator, context=index)
-        self.index = index
+        super().__init__(coordinator, index, type)
 
-        self._attr_name = f"{type} Journey #{self.index +1 }".capitalize()
-        self._attr_unique_id = f"{coordinator.entry.entry_id}_{self.index}_{type}_journey_sensor"
-        self._attr_native_value = pytz.timezone('Europe/Paris').localize(self.coordinator.data.journeys[self.index].journey.departure_date_time)
+        self._attr_unique_id = f"{self.short_start_name()}_{self.short_end_name()}_{self.type}_journey_{self.index + 1}"
+        self._attr_native_value = self.timezone.localize(self.data.journey.departure_date_time)
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        _LOGGER.debug("Update journey: %s", self.coordinator.data.start)
-        self._attr_native_value = pytz.timezone('Europe/Paris').localize(self.coordinator.data.journeys[self.index].journey.departure_date_time)
+    def _handle_journey_update(self) -> None:
+        _LOGGER.debug("[%s] updating: %s - %s", type(self).__name__, self.start_label, self.end_label)
+        self._attr_native_value = self.timezone.localize(self.data.journey.departure_date_time)
         self.async_write_ha_state()
 
     @property
@@ -57,101 +72,109 @@ class JourneyEntity(CoordinatorEntity, SensorEntity):
     @property
     def extra_state_attributes(self):
         return {
-            "line": self.coordinator.data.journeys[self.index].journey.sections[0].informations.label,
-            "direction": self.coordinator.data.journeys[self.index].journey.sections[0].informations.direction,
-            "arrival_time": pytz.timezone('Europe/Paris').localize(self.coordinator.data.journeys[self.index].journey.arrival_date_time),
-            "physical_mode": self.coordinator.data.journeys[self.index].journey.sections[0].informations.physical_mode,
-            "departure": self.coordinator.data.start.label,
-            "arrival": self.coordinator.data.end.label
+            ATTR_LINE_JOURNEY: self.data.journey.sections[0].informations.label,
+            ATTR_DIRECTION_JOURNEY: self.data.journey.sections[0].informations.direction,
+            ATTR_DEPARTURE_TIME_JOURNEY: self.timezone.localize(self.data.journey.departure_date_time),
+            ATTR_ARRIVAL_TIME_JOURNEY: self.timezone.localize(self.data.journey.arrival_date_time),
+            ATTR_DURATION_JOURNEY: self.data.journey.sections[0].duration,
+            ATTR_PHYSICAL_MODE_JOURNEY: self.data.journey.sections[0].informations.physical_mode,
+            ATTR_DEPARTURE_JOURNEY: self.start_label,
+            ATTR_ARRIVAL_JOURNEY: self.end_label
         }
     
-    @property
-    def device_info(self):
-        """Return device information about this entity."""
-        return {
-            "identifiers": {(DOMAIN, self.coordinator.entry.entry_id)},
-            "name": f"{self.coordinator.data.start.name} - {self.coordinator.data.end.name}",
-            "sw_version": VERSION,
-            "entry_type": None,
-        }
 
-class DepartureEntity(CoordinatorEntity, SensorEntity):
+class JourneyEntity(JourneyBaseEntity, SensorEntity):
+    def __init__(self, coordinator, index, type):
+        super().__init__(coordinator, index, type)
+        self._attr_unique_id = f"{self.short_start_name()}_{self.short_end_name()}_journeys"
+        self._attr_native_value = self.timezone.localize(self.data.journey.departure_date_time)
+
+    def _handle_journey_update(self) -> None:
+        _LOGGER.debug("[%s] updating: %s - %s", type(self).__name__, self.start_label, self.end_label)
+        self._attr_native_value = self.timezone.localize(self.data.journey.departure_date_time)
+        self.async_write_ha_state()
+
+    @property
+    def device_class(self) -> SensorDeviceClass | None:
+        return SensorDeviceClass.TIMESTAMP
+
+    @property
+    def extra_state_attributes(self):
+        journeys = []
+        for data in self.coordinator.data.journeys:
+            
+            disruptions = []
+            for disruption in data.disruptions:
+                disruptions.append({
+                    ATTR_DISRUPTION_TYPE: disruption.severity_effect,
+                    ATTR_DISRUPTION_MESSAGE: disruption.messages[0],
+                    
+                }) 
+            journeys.append({
+                ATTR_LINE_JOURNEY: data.journey.sections[0].informations.label,
+                ATTR_DIRECTION_JOURNEY: data.journey.sections[0].informations.direction,
+                ATTR_DEPARTURE_TIME_JOURNEY: self.timezone.localize(data.journey.departure_date_time),
+                ATTR_ARRIVAL_TIME_JOURNEY: self.timezone.localize(data.journey.arrival_date_time),
+                ATTR_DURATION_JOURNEY: data.journey.sections[0].duration,
+                ATTR_PHYSICAL_MODE_JOURNEY: data.journey.sections[0].informations.physical_mode,
+                ATTR_DEPARTURE_JOURNEY: self.start_label,
+                ATTR_ARRIVAL_JOURNEY: self.end_label,
+                ATTR_DISRUPTIONS_LIST: disruptions,
+                ATTR_DELAY_JOURNEY: self.get_delay(data.disruptions, self.start_label)
+            })
+
+        return {
+            ATTR_JOURNEYS_LIST: journeys
+        }
+    
+
+class DepartureEntity(JourneyBaseEntity, SensorEntity):
 
     def __init__(self, coordinator, index, type):
-        self.coordinator = coordinator
-        super().__init__(self.coordinator, context=index)
-        self.index = index
+        super().__init__(coordinator, index, type)
 
-        self._attr_name = f"{type} Journey #{self.index + 1} - Departure Date Time".capitalize()
-        self._attr_unique_id = f"{coordinator.entry.entry_id}_{self.index}_{type}_departure_sensor"
-        self._attr_native_value = pytz.timezone('Europe/Paris').localize(self.coordinator.data.journeys[self.index].journey.departure_date_time)
+        self._attr_unique_id = f"{self.short_start_name()}_{self.short_end_name()}_{self.type}_journey_departure_{self.index + 1}"
+        self._attr_native_value = self.timezone.localize(self.data.journey.departure_date_time)
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        _LOGGER.debug("Update departure journey: %s", self.coordinator.data.start)
-        self._attr_native_value = pytz.timezone('Europe/Paris').localize(self.coordinator.data.journeys[self.index].journey.departure_date_time)
+    def _handle_journey_update(self) -> None:
+        _LOGGER.debug("[%s] updating: %s - %s", type(self).__name__, self.start_label, self.end_label)
+        self._attr_native_value = self.timezone.localize(self.data.journey.departure_date_time)
         self.async_write_ha_state()
 
     @property
     def device_class(self) -> SensorDeviceClass | None:
         return SensorDeviceClass.TIMESTAMP
     
-    @property
-    def device_info(self):
-        """Return device information about this entity."""
-        return {
-            "identifiers": {(DOMAIN, self.coordinator.entry.entry_id)},
-            "name": f"{self.coordinator.data.start.name} - {self.coordinator.data.end.name}",
-            "sw_version": VERSION,
-            "entry_type": None,
-        }
 
 
-class ArrivalEntity(CoordinatorEntity, SensorEntity):
+class ArrivalEntity(JourneyBaseEntity, SensorEntity):
     def __init__(self, coordinator, index, type):
-        self.coordinator = coordinator
-        super().__init__(self.coordinator, context=index)
-        self.index = index 
+        super().__init__(coordinator, index, type)
 
-        self._attr_name = f"{type} Journey #{self.index + 1} - Arrival Date Time".capitalize()
-        self._attr_unique_id = f"{coordinator.entry.entry_id}_{self.index}_{type}_arrival_sensor"
-        self._attr_native_value = pytz.timezone('Europe/Paris').localize(self.coordinator.data.journeys[self.index].journey.arrival_date_time)
+        self._attr_unique_id = f"{self.short_start_name()}_{self.short_end_name()}_{self.type}_journey_arrival_{self.index + 1}"
+        self._attr_native_value = self.timezone.localize(self.data.journey.arrival_date_time)
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        _LOGGER.debug("Update arrival journey: %s", self.coordinator.data.start)
-        self._attr_native_value = pytz.timezone('Europe/Paris').localize(self.coordinator.data.journeys[self.index].journey.arrival_date_time)
+    def  _handle_journey_update(self) -> None:
+        _LOGGER.debug("[%s] updating: %s - %s", type(self).__name__, self.start_label, self.end_label)
+        self._attr_native_value = self.timezone.localize(self.data.journey.arrival_date_time)
         self.async_write_ha_state()
 
     @property
     def device_class(self) -> SensorDeviceClass | None:
         return SensorDeviceClass.TIMESTAMP
     
-    @property
-    def device_info(self):
-        """Return device information about this entity."""
-        return {
-            "identifiers": {(DOMAIN, self.coordinator.entry.entry_id)},
-            "name": f"{self.coordinator.data.start.name} - {self.coordinator.data.end.name}",
-            "sw_version": VERSION,
-            "entry_type": None,
-        }
     
-class DurationEntity(CoordinatorEntity, SensorEntity):
+class DurationEntity(JourneyBaseEntity, SensorEntity):
     def __init__(self, coordinator, index, type):
-        self.coordinator = coordinator
-        super().__init__(self.coordinator, context=index)
-        self.index = index 
+        super().__init__(coordinator, index, type)
 
-        self._attr_name = f"{type} Journey #{self.index + 1} - Duration".capitalize()
         self._attr_native_unit_of_measurement = "s"
-        self._attr_unique_id = f"{coordinator.entry.entry_id}_{self.index}_{type}_duration_sensor"
-        self._attr_native_value = self.coordinator.data.journeys[self.index].journey.sections[0].duration
+        self._attr_unique_id = f"{self.short_start_name()}_{self.short_end_name()}_{self.type}_journey_duration_{self.index + 1}"
+        self._attr_native_value = self.data.journey.sections[0].duration
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        _LOGGER.debug("Update arrival journey: %s", self.coordinator.data.start)
-        self._attr_native_value = self.coordinator.data.journeys[self.index].journey.sections[0].duration
+    def _handle_journey_update(self) -> None:
+        _LOGGER.debug("[%s] updating: %s - %s", type(self).__name__, self.start_label, self.end_label)
+        self._attr_native_value = self.data.journey.sections[0].duration
         self.async_write_ha_state()
 
     @property
@@ -162,32 +185,19 @@ class DurationEntity(CoordinatorEntity, SensorEntity):
     def state_class(self) -> SensorStateClass:
         return SensorStateClass.MEASUREMENT
     
-    @property
-    def device_info(self):
-        """Return device information about this entity."""
-        return {
-            "identifiers": {(DOMAIN, self.coordinator.entry.entry_id)},
-            "name": f"{self.coordinator.data.start.name} - {self.coordinator.data.end.name}",
-            "sw_version": VERSION,
-            "entry_type": None,
-        }
 
-
-class DelayEntity(CoordinatorEntity, SensorEntity):
+class DelayEntity(JourneyBaseEntity, SensorEntity):
     def __init__(self, coordinator, index, type):
-        self.coordinator = coordinator
-        super().__init__(self.coordinator, context=index)
-        self.index = index
+        super().__init__(coordinator, index, type)
 
-        self._attr_name = f"{type} Journey #{self.index + 1} - Delay".capitalize()
+
         self._attr_native_unit_of_measurement = "s"
-        self._attr_unique_id = f"{coordinator.entry.entry_id}_{self.index}_{type}_disruption_message_sensor"
-        self._attr_native_value = self.get_delay(self.coordinator.data.journeys[self.index].disruptions, self.coordinator.data.start)
+        self._attr_unique_id = f"{self.short_start_name()}_{self.short_end_name()}_{self.type}_journey_disruption_delay_{self.index + 1}"
+        self._attr_native_value = self.get_delay(self.data.disruptions, self.start_label)
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        _LOGGER.debug("Update delay journey: %s", self.coordinator.data.start)
-        self._attr_native_value = self.get_delay(self.coordinator.data.journeys[self.index].disruptions, self.coordinator.data.start)
+    def _handle_journey_update(self) -> None:
+        _LOGGER.debug("[%s] updating: %s - %s", type(self).__name__, self.start_label, self.end_label)
+        self._attr_native_value = self.get_delay(self.data.disruptions, self.start_label)
         self.async_write_ha_state()
 
     @property
@@ -197,25 +207,4 @@ class DelayEntity(CoordinatorEntity, SensorEntity):
     @property
     def state_class(self) -> SensorStateClass:
         return SensorStateClass.MEASUREMENT
-
-    
-    @property
-    def device_info(self):
-        """Return device information about this entity."""
-        return {
-            "identifiers": {(DOMAIN, self.coordinator.entry.entry_id)},
-            "name": f"{self.coordinator.data.start.name} - {self.coordinator.data.end.name}",
-            "sw_version": VERSION,
-            "entry_type": None,
-        }
-
-    def get_delay(self, disruptions, start_point):
-        delay = None
-        if len(disruptions) > 0:
-            if disruptions[0].severity_effect == "SIGNIFICANT_DELAYS":
-                for impacted_objects in disruptions[0].impacted_objects:
-                    for impacted_stop in impacted_objects.impacted_stops:
-                        if impacted_stop.stop_point.name == start_point.name:
-                            delay = (impacted_stop.ammended_departure_time - impacted_stop.base_departure_time).total_seconds()
-        return delay
     

@@ -1,5 +1,8 @@
 # Train Traveler
 
+[![HACS: Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
+![Version](https://img.shields.io/github/v/release/Matthyeux/train-traveler?label=version)
+
 Train Traveler is a custom component for Home Assistant that retrieves the next train schedules for a given route as well as the last train of the day and disruptions if exists.
 
 ## Features
@@ -81,10 +84,32 @@ Train Traveler is a custom component for Home Assistant that retrieves the next 
         - **Counter:** Set a counter for the number of next train schedules to retrieve. (default: 1)
         - **Refresh rate:** refresh rate to update entities (default: 740 seconds)
         - **Last journey:** Enable or no the last journey for your line
+        - **Experimental - Pause API calls** Update API are paused between closing and openning time to reduce useless requests (This feature is in experimental state and may causes some bugs. Please remove it if you encounter bugs)
 
 ## Usage
 
 Once configured, the Train Traveler component will create sensors in Home Assistant for the next train schedules and the last train of the day. You can use them in your dashboards or automations.
+
+### Journeys Entity - Sensor
+
+List all journeys configured in only one sensor (you can use individual sensor for each journey with next sections if you don't want or can't parse a list in a sensor)
+
+| Attribute       | Description                                 | Example Value         |
+|-----------------|---------------------------------------------|-----------------------|
+| `state`         | The date and time of the next train         | `2024-05-18T15:30:00` |
+
+And for each journey a list named `journeys` with theses attributes:
+
+| Attribute       | Description                                 | Example Value         |
+|-----------------|---------------------------------------------|-----------------------|
+| `line`          | The train line                              | `RER B`               |
+| `departure`     | The departure station                       | `Gare du Nord`        |
+| `departure_time`| The date and time of the next train         | `2024-05-18T15:30:00`        |
+| `arrival`       | The arrival station                         | `Charles de Gaulle`   |
+| `arrival_time`  | The date and time of arrival                | `2024-05-18T16:00:00` |
+| `direction`     | The final destination of the train (terminus)| `Charles de Gaulle`   |
+| `duration`      | The duration of the journey in seconds       | `1800` |
+| `physical_mode` | The mode of transport                       | `TER / Intercité`               |
 
 ### Next Journey Entity - Sensor
 
@@ -93,10 +118,11 @@ Once configured, the Train Traveler component will create sensors in Home Assist
 | `state`         | The date and time of the next train         | `2024-05-18T15:30:00` |
 | `line`          | The train line                              | `RER B`               |
 | `departure`     | The departure station                       | `Gare du Nord`        |
+| `departure_time`| The date and time of the next train         | `2024-05-18T15:30:00`        |
 | `arrival`       | The arrival station                         | `Charles de Gaulle`   |
 | `arrival_time`  | The date and time of arrival                | `2024-05-18T16:00:00` |
 | `direction`     | The final destination of the train (terminus)| `Charles de Gaulle`   |
-| `duration`         | The duration of the journey in seconds       | `1800` |
+| `duration`      | The duration of the journey in seconds       | `1800` |
 | `physical_mode` | The mode of transport                       | `TER / Intercité`               |
 
 ### Next Journey Departure Date Time Entity - Sensor

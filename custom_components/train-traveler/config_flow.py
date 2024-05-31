@@ -16,7 +16,7 @@ from .const import (
     DOMAIN, 
     DEFAULT_CONNECTION_URL, DEFAULT_CONNECTION_REGION, DEFAULT_REFRESH_RATE, DEFAULT_JOURNEY_COUNT,
     CONF_CONNECTION, CONF_LAST_JOURNEY, CONF_FROM, CONF_TO, CONF_START_AREA, CONF_END_AREA,
-    CONF_AREAS, CONF_JOURNEYS_COUNT, CONF_AREA_NAME, CONF_AREA_COORD, CONF_AREA_ID, CONF_AREA_LABEL
+    CONF_AREAS, CONF_JOURNEYS_COUNT, CONF_AREA_NAME, CONF_AREA_COORD, CONF_AREA_ID, CONF_AREA_LABEL, CONF_PAUSE_UPDATE_EXPERIMENTAL
 )
 
 CONNECTION_SCHEMA = vol.Schema({
@@ -34,7 +34,8 @@ AREA_SCHEMA = vol.Schema({
 JOURNEY_SCHEMA = vol.Schema({
     vol.Required(CONF_JOURNEYS_COUNT, default=DEFAULT_JOURNEY_COUNT): cv.positive_int,
     vol.Required(CONF_SCAN_INTERVAL, default=DEFAULT_REFRESH_RATE): cv.positive_int,
-    vol.Optional(CONF_LAST_JOURNEY): cv.boolean
+    vol.Optional(CONF_LAST_JOURNEY): cv.boolean,
+    vol.Optional(CONF_PAUSE_UPDATE_EXPERIMENTAL): cv.boolean
 })
 
 
@@ -169,6 +170,7 @@ class TrainTravelerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self.data[CONF_JOURNEYS_COUNT] = user_input[CONF_JOURNEYS_COUNT]
             self.data[CONF_SCAN_INTERVAL] = user_input[CONF_SCAN_INTERVAL]
             self.data[CONF_LAST_JOURNEY] = user_input[CONF_LAST_JOURNEY] if CONF_LAST_JOURNEY in user_input else False
+            self.data[CONF_PAUSE_UPDATE_EXPERIMENTAL] = user_input[CONF_PAUSE_UPDATE_EXPERIMENTAL] if CONF_PAUSE_UPDATE_EXPERIMENTAL in user_input else False
 
             return self.async_create_entry(title=f"{self.data[CONF_START_AREA][CONF_AREA_LABEL]} - {self.data[CONF_END_AREA][CONF_AREA_LABEL]}" , data=self.data)
 

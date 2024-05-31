@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 import logging
+import pytz
 
 import async_timeout
 
@@ -13,7 +14,16 @@ from homeassistant.helpers.update_coordinator import (
 )
 from homeassistant.const import CONF_SCAN_INTERVAL
 
-from .const import DOMAIN, CONF_START_AREA, CONF_END_AREA, CONF_JOURNEYS_COUNT, CONF_AREA_LABEL, CONF_AREA_COORD, CONF_AREA_ID, CONF_AREA_NAME
+from .const import (
+    CONF_START_AREA, 
+    CONF_END_AREA, 
+    CONF_JOURNEYS_COUNT, 
+    CONF_AREA_LABEL, 
+    CONF_AREA_COORD, 
+    CONF_AREA_ID, 
+    CONF_AREA_NAME,
+    CONF_PAUSE_UPDATE_EXPERIMENTAL
+)
 
 from sncf.repositories.repository_manager import ApiRepository
 from sncf.repositories.journey_repository import ApiJourneyRepository 
@@ -56,37 +66,71 @@ class JourneyCoordinator(DataUpdateCoordinator):
             journey_repository=ApiJourneyRepository(self.connection),
             disruption_repository=ApiDisruptionRepository(self.connection)
         )
+        self.start_area = Area(
+            self.config[CONF_START_AREA][CONF_AREA_ID], 
+            self.config[CONF_START_AREA][CONF_AREA_NAME], 
+            self.config[CONF_START_AREA][CONF_AREA_LABEL], 
+            self.config[CONF_START_AREA][CONF_AREA_COORD]
+        )
+
+        self.end_area = Area(
+            self.config[CONF_END_AREA][CONF_AREA_ID], 
+            self.config[CONF_END_AREA][CONF_AREA_NAME], 
+            self.config[CONF_END_AREA][CONF_AREA_LABEL], 
+            self.config[CONF_END_AREA][CONF_AREA_COORD]
+        )
+
+        self._timezone = pytz.timezone("Europe/Paris")
+        self._pause_update = False
+        self._pause_interval = None
+        self._next_journeys = None
+
+        # Added for retrocompatibility
+        if not CONF_PAUSE_UPDATE_EXPERIMENTAL in self.config:
+            self._conf_pause_update_experimental = False
+        else:
+            self._conf_pause_update_experimental = self.config[CONF_PAUSE_UPDATE_EXPERIMENTAL]
 
     async def _async_update_data(self):
         _LOGGER.info("Fetch data for journey %s", self.config[CONF_START_AREA][CONF_AREA_LABEL])
         try:
             async with async_timeout.timeout(30):
-                start_area = Area(
-                    self.config[CONF_START_AREA][CONF_AREA_ID], 
-                    self.config[CONF_START_AREA][CONF_AREA_NAME], 
-                    self.config[CONF_START_AREA][CONF_AREA_LABEL], 
-                    self.config[CONF_START_AREA][CONF_AREA_COORD]
-                )
-                
-                end_area = Area(
-                    self.config[CONF_END_AREA][CONF_AREA_ID], 
-                    self.config[CONF_END_AREA][CONF_AREA_NAME], 
-                    self.config[CONF_END_AREA][CONF_AREA_LABEL], 
-                    self.config[CONF_END_AREA][CONF_AREA_COORD]
-                )
                 if self.last_journey:
                     journeys = await self.hass.async_add_executor_job(
                         self.journey_service.get_last_direct_journey,
-                        start_area,
-                        end_area
+                        self.start_area,
+                        self.end_area
                     )
                 else:
-                    journeys = await self.hass.async_add_executor_job(
-                        self.journey_service.get_direct_journeys,
-                        start_area,
-                        end_area,
-                        self.config[CONF_JOURNEYS_COUNT]
-                    )
+
+                    if self._pause_update:
+                        if datetime.now().astimezone(pytz.utc) > self._pause_interval.astimezone(pytz.utc):
+                            _LOGGER.debug("Pause is now resumed as the next journey is in less than one hour : %s", self._pause_interval)
+                            self._pause_update = False
+                            self._pause_interval = None
+                        else:
+                            _LOGGER.debug("Update is paused because the next journey is the next day and in more than one hour : %s", self._pause_interval)
+                            journeys = self._next_journeys
+
+                    if not self._pause_update: 
+                        journeys = await self.hass.async_add_executor_job(
+                            self.journey_service.get_direct_journeys,
+                            self.start_area,
+                            self.end_area,
+                            self.config[CONF_JOURNEYS_COUNT]
+                        )
+
+                        # Enable "PAUSE UPDATE" between closing time and opening time
+                        if self._conf_pause_update_experimental:
+                            _LOGGER.debug("Pause update configuration enabled")
+                            self._next_journeys = journeys
+                            next_departure_journey = self._timezone.localize(journeys.journeys[0].journey.departure_date_time).astimezone(pytz.utc)
+                        
+                            if next_departure_journey.date() == (datetime.now().astimezone(pytz.utc).date() + timedelta(days=1)):
+                                self._pause_update = True
+                                self._pause_interval = next_departure_journey - timedelta(hours=1)
+                                _LOGGER.debug("Pausing update because the next journey is the next day and in more than one hour : %s", self._pause_interval)
+
 
                 _LOGGER.debug("Api calls count %s", self.repository_manager._query_count)
                 

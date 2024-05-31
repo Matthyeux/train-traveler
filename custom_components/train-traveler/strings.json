@@ -34,7 +34,8 @@
                 "data": {
                     "journey": "Number of next journeys",
                     "scan_interval": "Refresh rate (in sec.)",
-                    "last_journey": "Add last journey of the day"
+                    "last_journey": "Add last journey of the day",
+                    "pause_update_experimental": "(Experimental) Pause API calls between closing and opening time"
                 }
 
             }

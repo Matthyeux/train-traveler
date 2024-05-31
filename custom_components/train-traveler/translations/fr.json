@@ -34,7 +34,8 @@
                 "data": {
                     "journey": "Nombre de prochains trajets à récupérer",
                     "scan_interval": "Taux de rafraichissement (en secondes)",
-                    "last_journey": "Ajouter le dernier trajet de la journée"
+                    "last_journey": "Ajouter le dernier trajet de la journée",
+                    "pause_update_experimental": "(Experimentation) Stopper les appels API entre les horaires de fermeture et d'ouverture"
                 }
 
             }

@@ -90,6 +90,17 @@ Train Traveler is a custom component for Home Assistant that retrieves the next 
 
 Once configured, the Train Traveler component will create sensors in Home Assistant for the next train schedules and the last train of the day. You can use them in your dashboards or automations.
 
+Sensors will be named as follow :
+
+`sensor.train_traveler_<start>_<end>_next_journey_<index_next_train>`
+
+where :
+
+- `<start>` are the first three letters of the start station
+- `<end>` are the first three letters of the end station
+- `<index_next_train>` reprensents train's index in the list
+
+
 ### Journeys Entity - Sensor
 
 List all journeys configured in only one sensor (you can use individual sensor for each journey with next sections if you don't want or can't parse a list in a sensor)
@@ -225,7 +236,7 @@ If you want to contribute to the development of this component, follow these ste
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/Matthyeux/train_traveler.git
+git clone https://github.com/Matthyeux/train-traveler.git
 ```
 
 2. Create a branch for your changes:

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Fixed
+
+- bad link in documentation
+
 ## [0.1.0-alpha.1] - 2024-05-31
 
 ### Added

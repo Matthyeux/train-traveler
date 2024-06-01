@@ -28,7 +28,7 @@ Train Traveler is a custom component for Home Assistant that retrieves the next 
 
     - Open Home Assistant and go to `HACS > Integrations`.
     - Click on the three dots in the top right corner and select `Custom repositories`.
-    - Add the link to the Train Traveler GitHub repository: `https://github.com/Matthyeux/train_traveler`.
+    - Add the link to the Train Traveler GitHub repository: `https://github.com/Matthyeux/train-traveler`.
     - Select the category `Integration` and click `Add`.
 
 3. **Install the Train Traveler integration:**
@@ -51,7 +51,7 @@ Train Traveler is a custom component for Home Assistant that retrieves the next 
     Clone this repository or download the files and place them in the `custom_components/train_traveler` directory of your Home Assistant configuration.
 
     ```bash
-    git clone https://github.com/Matthyeux/train_traveler.git
+    git clone https://github.com/Matthyeux/train-traveler.git
     
     cp -r train_traveler/custom_components/* custom_components/train_traveler/
     ```

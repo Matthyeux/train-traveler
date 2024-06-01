@@ -48,7 +48,8 @@ Train Traveler is a custom component for Home Assistant that retrieves the next 
 
 1. **Download the component files:**
 
-    Clone this repository or download the files and place them in the `custom_components/train_traveler` directory of your Home Assistant configuration.
+    Clone this repository or download the files and place them in the `custom_components/train_
+    -traveler` directory of your Home Assistant configuration.
 
     ```bash
     git clone https://github.com/Matthyeux/train-traveler.git

@@ -6,7 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- bad link in documentation
+- Bad link in documentation
+- Missing doc for new naming strategy for entities
 
 ## [0.1.0-alpha.1] - 2024-05-31
 

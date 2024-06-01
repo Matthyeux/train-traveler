@@ -100,6 +100,11 @@ where :
 - `<end>` are the first three letters of the end station
 - `<index_next_train>` reprensents train's index in the list
 
+Example for a `Paris - Marseille` journey following the next 2 trains, entities will be named as :
+
+- `sensor.train_traveler_par_mar_next_journey_1`
+- `sensor.train_traveler_par_mar_next_journey_2`
+
 
 ### Journeys Entity - Sensor
 
@@ -177,53 +182,53 @@ Add a custom card to your Lovelace dashboard to display the train schedules:
 type: vertical-stack
 cards:
   - type: entity
-    entity: sensor.next_journey_1
+    entity: sensor.train_traveler_par_mar_next_journey_1
     name: Next Journey
   - type: entities
     entities:
       - type: attribute
-        entity: sensor.next_journey_1
+        entity: sensor.train_traveler_par_mar_next_journey_1
         name: Line
         icon: mdi:train
         attribute: line
       - type: attribute
-        entity: sensor.next_journey_1
+        entity: sensor.train_traveler_par_mar_next_journey_1
         name: Direction
         icon: mdi:directions
         attribute: direction
-      - entity: sensor.next_journey_1_departure_date_time
+      - entity: sensor.train_traveler_par_mar_next_journey_departure_1
         name: Departure Time
         icon: mdi:clock-fast
-      - entity: sensor.next_journey_1_arrival_date_time
+      - entity: sensor.train_traveler_par_mar_next_journey_arrival_1
         name: Arrival Time
         icon: mdi:ray-end
-      - entity: sensor.next_journey_1_duration
+      - entity: sensor.train_traveler_par_mar_next_journey_duration_1
         name: Duration
         unit: seconds
         icon: mdi:timeline-clock-outline
       - type: attribute
-        entity: sensor.next_journey_1
+        entity: sensor.train_traveler_par_mar_next_journey_1
         name: Type
         icon: mdi:information-box-outline
         attribute: physical_mode
   - type: conditional
     conditions:
       - condition: state
-        entity: binary_sensor.next_journey_1_disruption
+        entity: binary_sensor.train_traveler_par_mar_next_journey_disruption_1
         state: 'on'
     card:
       type: entities
       entities:
-        - entity: sensor.next_journey_1_delay
+        - entity: sensor.train_traveler_par_mar_next_journey_delay_1
           name: Delay
           icon: mdi:clock-start
-        - entity: binary_sensor.next_journey_1_disruption
+        - entity: binary_sensor.train_traveler_par_mar_next_journey_disruption_1
           type: attribute
           name: Message
           icon: mdi:alert-circle
           attribute: disruption_message
   - type: entity
-    entity: sensor.last_journey_1
+    entity: sensor.train_traveler_par_mar_last_journey_1
     name: Last Journey
 title: Departure - Arrival
 

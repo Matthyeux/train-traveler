@@ -52,7 +52,7 @@ Train Traveler is a custom component for Home Assistant that retrieves the next 
     -traveler` directory of your Home Assistant configuration.
 
     ```bash
-    git clone https://github.com/Matthyeux/train_traveler.git
+    git clone https://github.com/Matthyeux/train-traveler.git
     
     cp -r train_traveler/custom_components/* custom_components/train_traveler/
     ```

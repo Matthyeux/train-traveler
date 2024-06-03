@@ -1,9 +1,9 @@
 from homeassistant.const import Platform
 
-VERSION = "0.1.0"
+VERSION = "0.1.0-alpha.2"
 
 
-DOMAIN = "train-traveler"
+DOMAIN = "train_traveler"
 PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR]
 
 DEFAULT_CONNECTION_URL = "https://api.sncf.com/v1"

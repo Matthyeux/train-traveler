@@ -1,5 +1,5 @@
 {
-    "domain": "train-traveler",
+    "domain": "train_traveler",
     "name": "Train Traveler",
     "version": "0.1.0-alpha.1",
     "codeowners": ["@Matthyeux"],

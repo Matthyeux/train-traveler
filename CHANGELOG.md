@@ -2,7 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [0.1.0-alpha.2] - 2024-06-03
+
+### Changed
+
+- Change component's directory name
 
 ### Fixed
 
